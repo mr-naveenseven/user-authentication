@@ -1,7 +1,9 @@
 package main
 
-import "fmt"
+import (
+	logger "user-authentication/pkg"
+)
 
 func main() {
-	fmt.Println("Hello, World!")
+	logger.Init("text")
 }
