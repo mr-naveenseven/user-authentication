@@ -18,7 +18,7 @@ func Init(mode string) {
 		var handler slog.Handler
 		opts := &slog.HandlerOptions{
 			Level:     slog.LevelInfo,
-			AddSource: true, // ✅ include file:line in logs
+			AddSource: true, // include file:line in logs
 		}
 		switch mode {
 		case "text":
