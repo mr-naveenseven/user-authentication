@@ -6,9 +6,16 @@ import (
 	"sync"
 )
 
+// singleton logger instance
 var (
 	log  *slog.Logger
 	once sync.Once
+)
+
+// Logger modes
+const (
+	LOGGER_MODE_JSON = "json"
+	LOGGER_MODE_TEXT = "text"
 )
 
 // Init initializes the logger.
@@ -53,5 +60,6 @@ func Warn(msg string, args ...any) {
 
 // GetLogger exposes the underlying slog.Logger if needed.
 func GetLogger() *slog.Logger {
+
 	return log
 }

@@ -10,11 +10,16 @@ import (
 
 func main() {
 	// Initialize the logger (modes: "json" or "text")
-	logger.Init("text")
+	logger.Init(logger.LOGGER_MODE_TEXT)
 
 	// Load server configurations
 	config := config.NewServerConfig()
-	config.LoadConfigs()
+	err := config.LoadConfigs()
+	if err != nil {
+		log.Println("Failed to load server configurations:", err)
+
+		return
+	}
 
 	log.Println("Starting the application...")
 
@@ -23,7 +28,7 @@ func main() {
 	pgConnAddress := config.PGConfig.User + ":" + config.PGConfig.Password + "@" + config.PGConfig.Host + ":" + config.PGConfig.Port +
 		"/" + config.PGConfig.DBName + "?sslmode=" + config.PGConfig.SSLMode
 
-	err := postgresClient.Connect("postgres://" + pgConnAddress)
+	err = postgresClient.Connect("postgres://" + pgConnAddress)
 	if err != nil {
 		println("Failed to connect to Postgres database:", err)
 

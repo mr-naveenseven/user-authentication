@@ -47,6 +47,7 @@ func (pgClient *PGClient) Connect(dbURI string) error {
 
 	pgClient.Client = pool
 	logger.Info("Connected to postgres database.....")
+
 	return nil
 }
 

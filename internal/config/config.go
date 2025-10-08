@@ -52,6 +52,7 @@ const (
 
 // NewServerConfig creates a new instance of ServerConfig with default values.
 func NewServerConfig() ServerConfig {
+
 	return ServerConfig{
 		Host:         "",
 		Port:         "",
@@ -79,13 +80,17 @@ func (sc *ServerConfig) loadPostgresConfig() {
 }
 
 // LoadConfigs loads all configurations from the specified .env file.
-func (sc *ServerConfig) LoadConfigs() {
+func (sc *ServerConfig) LoadConfigs() error {
 	if err := godotenv.Load(ENV_SERVER_CONFIG); err != nil {
 		logger.Error("Loading config from env file failed", "error", err)
+
+		return err
 	}
 
 	sc.loadServerConfig()
 	sc.loadPostgresConfig()
 
 	logger.Info("Server configuration loaded", "config", sc)
+
+	return nil
 }
