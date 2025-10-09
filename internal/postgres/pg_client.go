@@ -12,50 +12,72 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 
-	"github.com/jackc/pgx/v5/pgxpool"
+	gormpg "gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 // PGClient represents the Postgres client connection.
 type PGClient struct {
-	Client       *pgxpool.Pool
-	Timeout      int
-	MigrationDir string
+	DB               *gorm.DB
+	Timeout          int
+	GormConnURI      string
+	MigrationConnURL string
+	MigrationDir     string
 }
 
 // NewPGClient creates a new instance of PGClient.
-func NewPGClient(timeout int, migrationDir string) *PGClient {
+func NewPGClient(gormConnURI string, migrationConnURL string, timeout int, migrationDir string) *PGClient {
 
 	return &PGClient{
-		Client:       nil,
-		Timeout:      timeout,
-		MigrationDir: migrationDir,
+		DB:               nil,
+		GormConnURI:      gormConnURI,
+		MigrationConnURL: migrationConnURL,
+		Timeout:          timeout,
+		MigrationDir:     migrationDir,
 	}
 }
 
 // Connect establishes a connection to the Postgres database.
-func (pgClient *PGClient) Connect(dbURI string) error {
-	// Create a context with a timeout for the connection attempt
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(pgClient.Timeout)*time.Second)
+func (pg *PGClient) Connect() error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(pg.Timeout)*time.Second)
 	defer cancel()
 
-	// Create a connection pool
-	pool, err := pgxpool.New(ctx, dbURI)
+	db, err := gorm.Open(gormpg.Open(pg.GormConnURI), &gorm.Config{
+		// Logger: gormLogger.Default.LogMode(gormLogger.Warn),
+	})
 	if err != nil {
 
-		return fmt.Errorf("unable to connect to database: %w", err)
+		return fmt.Errorf("failed to connect to database: %w", err)
 	}
 
-	pgClient.Client = pool
-	logger.Info("Connected to postgres database.....")
+	sqlDB, err := db.DB()
+	if err != nil {
+
+		return fmt.Errorf("failed to get sql.DB from gorm: %w", err)
+	}
+
+	// Set connection pool configs
+	sqlDB.SetConnMaxLifetime(time.Hour)
+	sqlDB.SetMaxIdleConns(10)
+	sqlDB.SetMaxOpenConns(100)
+
+	// Test ping
+	if err := sqlDB.PingContext(ctx); err != nil {
+
+		return fmt.Errorf("database ping failed: %w", err)
+	}
+
+	pg.DB = db
+	logger.Info("Connected to postgres database using GORM.....")
 
 	return nil
 }
 
 // Initialize initializes the Postgres client by migrating the database tables.
-func (pgClient *PGClient) Initialize() error {
+func (pg *PGClient) Initialize() error {
 
 	// Migrate the database tables
-	if err := pgClient.migrateTables(); err != nil {
+	if err := pg.migrateTables(); err != nil {
 		log.Println("Error migrating tables:", err)
 
 		return err
@@ -66,18 +88,18 @@ func (pgClient *PGClient) Initialize() error {
 }
 
 // nugrateTables applies database migrations using the golang-migrate library.
-func (pgClient *PGClient) migrateTables() error {
+func (pg *PGClient) migrateTables() error {
 
-	pgConnString := pgClient.Client.Config().ConnString()
-	m, err := migrate.New(
-		"file://"+pgClient.MigrationDir,
-		pgConnString,
-	)
+	// Create a new migrate instance
+	m, err := migrate.New("file://"+pg.MigrationDir, pg.MigrationConnURL)
 	if err != nil {
 		log.Println("Error creating migration instance:", err)
 
 		return fmt.Errorf("error creating migration instance: %w", err)
 	}
+	defer m.Close()
+
+	// Apply all up migrations
 	if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		log.Println("Error applying migrations:", err)
 
@@ -95,9 +117,10 @@ func (pgClient *PGClient) migrateTables() error {
 }
 
 // Disconnect closes the connection to the Postgres database.
-func (pgClient *PGClient) Disconnect() {
-	if pgClient.Client != nil {
-		pgClient.Client.Close()
+func (pg *PGClient) Disconnect() {
+	if pg.DB != nil {
+		sqlDB, _ := pg.DB.DB()
+		sqlDB.Close()
 		log.Println("Disconnected from Postgres database successfully.")
 	} else {
 		log.Println("Postgres client is already disconnected or was never connected.")

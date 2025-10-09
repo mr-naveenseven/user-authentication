@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"user-authentication/internal/config"
 	"user-authentication/internal/postgres"
@@ -23,12 +24,31 @@ func main() {
 
 	log.Println("Starting the application...")
 
-	// postgresClient represents the Postgres client connection.
-	postgresClient := postgres.NewPGClient(config.PGConfig.ConnTimeout, config.MigrationDir)
-	pgConnAddress := config.PGConfig.User + ":" + config.PGConfig.Password + "@" + config.PGConfig.Host + ":" + config.PGConfig.Port +
-		"/" + config.PGConfig.DBName + "?sslmode=" + config.PGConfig.SSLMode
+	// Postgres connection string
+	pgConnAddress := fmt.Sprintf(
+		"user=%s password=%s host=%s port=%s dbname=%s sslmode=%s",
+		config.PGConfig.User,
+		config.PGConfig.Password,
+		config.PGConfig.Host,
+		config.PGConfig.Port,
+		config.PGConfig.DBName,
+		config.PGConfig.SSLMode,
+	)
 
-	err = postgresClient.Connect("postgres://" + pgConnAddress)
+	// Migration connection string
+	pgConnMigAddress := fmt.Sprintf(
+		"postgres://%s:%s@%s:%s/%s?sslmode=%s",
+		config.PGConfig.User,
+		config.PGConfig.Password,
+		config.PGConfig.Host,
+		config.PGConfig.Port,
+		config.PGConfig.DBName,
+		config.PGConfig.SSLMode,
+	)
+
+	// postgresClient represents the Postgres client connection.
+	postgresClient := postgres.NewPGClient(pgConnAddress, pgConnMigAddress, config.PGConfig.ConnTimeout, config.MigrationDir)
+	err = postgresClient.Connect()
 	if err != nil {
 		println("Failed to connect to Postgres database:", err)
 
