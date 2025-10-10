@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"log"
 	"time"
-	logger "user-authentication/pkg"
+	"user-authentication/pkg/logger"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"

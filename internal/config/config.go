@@ -3,7 +3,8 @@ package config
 import (
 	"os"
 	"strconv"
-	logger "user-authentication/pkg"
+	"user-authentication/pkg/jwt"
+	"user-authentication/pkg/logger"
 
 	"github.com/joho/godotenv"
 )
@@ -21,10 +22,11 @@ type PGConfig struct {
 
 // ServerConfig holds the overall server configuration including Postgres config.
 type ServerConfig struct {
-	Host         string
-	Port         string
-	MigrationDir string
-	PGConfig     PGConfig
+	Host            string
+	Port            string
+	MigrationDir    string
+	PGConfig        PGConfig
+	AuthTokenConfig jwt.AuthTokenConfig
 }
 
 // default configuration path
@@ -46,8 +48,8 @@ const (
 	KEY_DB_CONN_TIMEOUT = "DB_CONN_TIMEOUT"
 
 	// jwt .env config keys
-	KEY_JWT_SECRET         = "JWT_SECRET"
-	KEY_JWT_EXPIRE_MINUTES = "JWT_EXPIRE_MINUTES"
+	KEY_JWT_SECRET     = "JWT_SECRET"
+	JWT_EXPIRY_MINUTES = "JWT_EXPIRE_MINUTES"
 )
 
 // NewServerConfig creates a new instance of ServerConfig with default values.
@@ -79,6 +81,12 @@ func (sc *ServerConfig) loadPostgresConfig() {
 	sc.PGConfig.ConnTimeout, _ = strconv.Atoi(os.Getenv(KEY_DB_CONN_TIMEOUT))
 }
 
+// loadJWTConfig loads JWT-related configurations from environment variables.
+func (sc *ServerConfig) loadAuthTokenConfig() {
+	sc.AuthTokenConfig.SecretKey = os.Getenv(KEY_JWT_SECRET)
+	sc.AuthTokenConfig.AccessTokenExpiry, _ = strconv.Atoi(os.Getenv(JWT_EXPIRY_MINUTES))
+}
+
 // LoadConfigs loads all configurations from the specified .env file.
 func (sc *ServerConfig) LoadConfigs() error {
 	if err := godotenv.Load(ENV_SERVER_CONFIG); err != nil {
@@ -89,6 +97,7 @@ func (sc *ServerConfig) LoadConfigs() error {
 
 	sc.loadServerConfig()
 	sc.loadPostgresConfig()
+	sc.loadAuthTokenConfig()
 
 	logger.Info("Server configuration loaded", "config", sc)
 

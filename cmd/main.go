@@ -6,7 +6,7 @@ import (
 	"user-authentication/internal/config"
 	"user-authentication/internal/postgres"
 	"user-authentication/internal/router"
-	logger "user-authentication/pkg"
+	"user-authentication/pkg/logger"
 )
 
 func main() {
