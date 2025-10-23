@@ -96,7 +96,7 @@ func (handler *UserHandler) Update(c *gin.Context) {
 		return
 	}
 
-	user.ID = uint(userID)
+	user.ID = userID
 
 	// Call service layer to create user
 	user, err := handler.userService.Update(user)

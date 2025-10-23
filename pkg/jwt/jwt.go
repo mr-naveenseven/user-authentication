@@ -16,12 +16,12 @@ var (
 type AuthToken struct {
 	secretKey          []byte
 	accessToken        *jwt.Token
-	encodedAccessToken string
+	EncodedAccessToken string
 	accessTokenExpiry  int
 }
 
 type AuthTokenConfig struct {
-	SecretKey         string
+	SecretKey         []byte
 	AccessTokenExpiry int
 }
 
@@ -31,12 +31,12 @@ type AccessTokenClaims struct {
 	jwt.RegisteredClaims
 }
 
-func (authToken *AuthToken) NewAuthToken(config AuthTokenConfig) *AuthToken {
+func NewAuthToken(config AuthTokenConfig) *AuthToken {
 
 	return &AuthToken{
 		secretKey:          []byte(config.SecretKey),
 		accessToken:        nil,
-		encodedAccessToken: "",
+		EncodedAccessToken: "",
 		accessTokenExpiry:  config.AccessTokenExpiry,
 	}
 }
@@ -53,14 +53,14 @@ func (authToken *AuthToken) createAccessToken(userId int, userName string) error
 		},
 	}
 
-	authToken.accessToken = jwt.NewWithClaims(jwt.SigningMethodES256, claims)
+	authToken.accessToken = jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signedToken, err := authToken.accessToken.SignedString(authToken.secretKey)
 	if err != nil {
 		log.Println("Failed to sign access token:", err)
 
 		return err
 	}
-	authToken.encodedAccessToken = signedToken
+	authToken.EncodedAccessToken = signedToken
 
 	return nil
 }

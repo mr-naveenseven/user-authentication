@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"user-authentication/internal/config"
+	"user-authentication/internal/core/auth"
 	"user-authentication/internal/core/user"
 	"user-authentication/internal/handler"
 	"user-authentication/internal/postgres"
@@ -66,11 +67,18 @@ func main() {
 	// defer postgres
 	defer postgresClient.Disconnect()
 
+	// repository
+	userRepo := user.NewUserRepo(postgresClient)
 	// services
-	userService := user.NewUserService(user.NewUserRepo(postgresClient))
+	userService := user.NewUserService(userRepo)
+	authService := auth.NewAuthService(config.AuthTokenConfig, userRepo)
 
 	// Set up the router and start the server
-	router := router.NewRouter(config.Port, handler.NewUserHandler(userService))
+	router := router.NewRouter(
+		config.Port,
+		handler.NewUserHandler(userService),
+		handler.NewAuthHandler(authService),
+	)
 
 	router.InitRouter()
 	router.Run()

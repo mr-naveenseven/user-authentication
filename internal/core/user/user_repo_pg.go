@@ -16,7 +16,7 @@ const (
 )
 
 type repoUser struct {
-	ID                 uint      `gorm:"column:id;primaryKey;autoIncrement"`
+	ID                 int       `gorm:"column:id;primaryKey;autoIncrement"`
 	Username           string    `gorm:"column:username"`
 	Email              string    `gorm:"column:email"`
 	PasswordHash       string    `gorm:"column:password_hash"`
@@ -131,8 +131,6 @@ func (repo *UserRepo) Get() ([]User, error) {
 func (repo *UserRepo) Update(user User) (User, error) {
 
 	rUser := toRepoUser(user)
-
-	fmt.Println(rUser)
 
 	res := repo.pgClient.DB.Model(&repoUser{}).Where(&repoUser{
 		ID: user.ID,

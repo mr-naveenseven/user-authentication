@@ -10,13 +10,19 @@ type Router struct {
 	e           *gin.Engine
 	port        string
 	userHandler handler.UserHandlerPort
+	authHandler handler.AuthHandlerPort
 }
 
-func NewRouter(port string, userHandler handler.UserHandlerPort) *Router {
+func NewRouter(
+	port string,
+	userHandler handler.UserHandlerPort,
+	authHandler handler.AuthHandlerPort,
+) *Router {
 	return &Router{
 		e:           nil,
 		port:        port,
 		userHandler: userHandler,
+		authHandler: authHandler,
 	}
 }
 
@@ -26,7 +32,8 @@ func (r *Router) InitRouter() {
 }
 
 func (r *Router) initRoutes() {
-	r.initUserRoutes()
+	r.registerUserRoutes()
+	r.registerAuthRoutes()
 }
 
 func (r *Router) Run() {
@@ -39,10 +46,17 @@ func SetupRouter() *gin.Engine {
 	return r
 }
 
-func (r *Router) initUserRoutes() {
+// registerUserRoutes registers the user routes
+func (r *Router) registerUserRoutes() {
 	userGroup := r.e.Group("/user")
 	userGroup.POST("", r.userHandler.Create)
 	userGroup.GET("", r.userHandler.Get)
 	userGroup.GET("/:id", r.userHandler.GetByID)
 	userGroup.PUT("/:id", r.userHandler.Update)
+}
+
+// registerAuthRoutes registers the authentication routes
+func (r *Router) registerAuthRoutes() {
+	authGroup := r.e.Group("/auth")
+	authGroup.GET("/login", r.authHandler.Login)
 }
