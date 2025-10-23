@@ -52,6 +52,7 @@ func (handler *AuthHandler) Login(c *gin.Context) {
 
 }
 
+// ValidateAccessToken validates the accesstoken on the Authorization Header
 func (handler *AuthHandler) ValidateAccessToken(accessTokenString string) (bool, error) {
 	isValid, err := handler.authService.ValidateAccessToken(accessTokenString)
 	if err != nil {

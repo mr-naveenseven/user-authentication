@@ -75,12 +75,15 @@ func (service *AuthService) Login(u user.User) (string, error) {
 	return authToken.EncodedAccessToken, nil
 }
 
+// ValidateAccessToken validates the accesstoken on the Authorization Header
 func (service *AuthService) ValidateAccessToken(accessTokenString string) (bool, error) {
 
+	// validates the access token for empty string
 	if accessTokenString == "" {
 		return false, ErrInvalidAccessToken
 	}
 
+	// validates the access token
 	authToken := jwt.NewAuthToken(service.config)
 	isValid, err := authToken.Validate(accessTokenString)
 	if err != nil {
