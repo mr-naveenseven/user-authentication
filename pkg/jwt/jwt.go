@@ -9,8 +9,9 @@ import (
 )
 
 var (
-	ErrInvalidUserID = errors.New("token generation: Invalid user ID")
-	ErrEmptyUserName = errors.New("token generation: Username cannot be empty")
+	ErrInvalidUserID      = errors.New("token generation: Invalid user ID")
+	ErrEmptyUserName      = errors.New("token generation: Username cannot be empty")
+	ErrInvalidAccessToken = errors.New("invalid access token: permission denied")
 )
 
 type AuthToken struct {
@@ -108,6 +109,6 @@ func (authToken *AuthToken) Validate(tokenString string) (bool, error) {
 	} else {
 		log.Println("Invalid access token claims")
 
-		return false, nil
+		return false, ErrInvalidAccessToken
 	}
 }

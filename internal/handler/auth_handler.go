@@ -11,6 +11,7 @@ import (
 // AuthHandlerPort represents the authentication handler port
 type AuthHandlerPort interface {
 	Login(c *gin.Context)
+	ValidateAccessToken(accessTokenString string) (bool, error)
 }
 
 // AuthHandler represents the authenctication handler
@@ -49,4 +50,13 @@ func (handler *AuthHandler) Login(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, gin.H{"message": "Login successfully", "token": accessToken})
 
+}
+
+func (handler *AuthHandler) ValidateAccessToken(accessTokenString string) (bool, error) {
+	isValid, err := handler.authService.ValidateAccessToken(accessTokenString)
+	if err != nil {
+		return isValid, err
+	}
+
+	return isValid, nil
 }

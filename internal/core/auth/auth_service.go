@@ -10,8 +10,9 @@ import (
 
 // return errors for the authentication service layer
 var (
-	ErrIncorrectPwd  = errors.New("incorrect user password")
-	ErrTokenCreation = errors.New("creating access token failed")
+	ErrIncorrectPwd       = errors.New("incorrect user password")
+	ErrTokenCreation      = errors.New("creating access token failed")
+	ErrInvalidAccessToken = errors.New("invalid access token: permission denied")
 )
 
 // empty token to return on the user authentication failure
@@ -20,6 +21,7 @@ const emptyToken = ""
 // AuthServicePort represents the authentication service port
 type AuthServicePort interface {
 	Login(u user.User) (string, error)
+	ValidateAccessToken(accessTokenString string) (bool, error)
 }
 
 // AuthService represents the authentication service
@@ -71,4 +73,20 @@ func (service *AuthService) Login(u user.User) (string, error) {
 	}
 
 	return authToken.EncodedAccessToken, nil
+}
+
+func (service *AuthService) ValidateAccessToken(accessTokenString string) (bool, error) {
+
+	if accessTokenString == "" {
+		return false, ErrInvalidAccessToken
+	}
+
+	authToken := jwt.NewAuthToken(service.config)
+	isValid, err := authToken.Validate(accessTokenString)
+	if err != nil {
+		log.Println("access token validation failed")
+		return isValid, err
+	}
+
+	return isValid, nil
 }
