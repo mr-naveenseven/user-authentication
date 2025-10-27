@@ -90,4 +90,5 @@ func (r *Router) registerUserRoutes() {
 func (r *Router) registerAuthRoutes() {
 	authGroup := r.e.Group("/auth")
 	authGroup.GET("/login", r.authHandler.Login)
+	authGroup.POST("/signup", r.authHandler.Signup)
 }

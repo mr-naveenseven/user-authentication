@@ -61,12 +61,11 @@ func toRepoUser(u User) repoUser {
 
 func toEntityUser(u repoUser) User {
 	return User{
-		ID:           u.ID,
-		Username:     u.Username,
-		Email:        u.Email,
-		PasswordHash: u.PasswordHash,
-		IsActive:     u.IsActive,
-		IsLocked:     u.IsLocked,
+		ID:       u.ID,
+		Username: u.Username,
+		Email:    u.Email,
+		IsActive: u.IsActive,
+		IsLocked: u.IsLocked,
 	}
 }
 

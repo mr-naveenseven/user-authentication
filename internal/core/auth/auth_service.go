@@ -21,6 +21,7 @@ const emptyToken = ""
 // AuthServicePort represents the authentication service port
 type AuthServicePort interface {
 	Login(u user.User) (string, error)
+	Create(u user.User) (user.User, error)
 	ValidateAccessToken(accessTokenString string) (bool, error)
 }
 
@@ -73,6 +74,28 @@ func (service *AuthService) Login(u user.User) (string, error) {
 	}
 
 	return authToken.EncodedAccessToken, nil
+}
+
+func (service *AuthService) Create(u user.User) (user.User, error) {
+	if u.Email == "" || u.Username == "" || u.Password == "" {
+		return user.User{}, user.ErrInvalidUserDetails
+	}
+
+	hashedPwd, err := password.HashPassword(u.Password)
+	if err != nil {
+		log.Printf("error hashing password %v", err)
+
+		return user.User{}, err
+	}
+
+	u.PasswordHash = hashedPwd
+
+	u, err = service.userRepo.Create(u)
+	if err != nil {
+		return user.User{}, err
+	}
+
+	return u, nil
 }
 
 // ValidateAccessToken validates the accesstoken on the Authorization Header

@@ -11,6 +11,7 @@ import (
 // AuthHandlerPort represents the authentication handler port
 type AuthHandlerPort interface {
 	Login(c *gin.Context)
+	Signup(c *gin.Context)
 	ValidateAccessToken(accessTokenString string) (bool, error)
 }
 
@@ -60,4 +61,30 @@ func (handler *AuthHandler) ValidateAccessToken(accessTokenString string) (bool,
 	}
 
 	return isValid, nil
+}
+
+func (handler *AuthHandler) Signup(c *gin.Context) {
+	var user user.User
+
+	// Bind JSON body to struct
+	if err := c.ShouldBindJSON(&user); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":  "Invalid request body",
+			"detail": err.Error(),
+		})
+		return
+	}
+
+	// Call service layer to create user
+	user, err := handler.authService.Create(user)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":  "Failed to create user",
+			"detail": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"message": "User created successfully", "user": user})
+
 }
