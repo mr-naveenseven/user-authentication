@@ -18,8 +18,9 @@ type UserService struct {
 }
 
 var (
-	errInvalidUserDetails = errors.New("invalid user details")
-	errInvalidUserID      = errors.New("invalid user id")
+	ErrInvalidUserDetails = errors.New("invalid user details")
+	ErrInvalidUserID      = errors.New("invalid user id")
+	ErrInvalidUserPwd     = errors.New("invalid user password")
 )
 
 func NewUserService(userRepo UserRepoPort) *UserService {
@@ -30,7 +31,7 @@ func NewUserService(userRepo UserRepoPort) *UserService {
 
 func (service *UserService) Create(user User) (User, error) {
 	if user.Email == "" || user.Username == "" || user.Password == "" {
-		return User{}, errInvalidUserDetails
+		return User{}, ErrInvalidUserDetails
 	}
 
 	hashedPwd, err := password.HashPassword(user.Password)
@@ -52,7 +53,7 @@ func (service *UserService) Create(user User) (User, error) {
 
 func (service *UserService) GetByID(userID int) (User, error) {
 	if userID <= 0 {
-		return User{}, errInvalidUserID
+		return User{}, ErrInvalidUserID
 	}
 
 	user, err := service.UserRepo.GetByID(userID)
@@ -74,7 +75,7 @@ func (service *UserService) Get() ([]User, error) {
 
 func (service *UserService) Update(user User) (User, error) {
 	if user.Email == "" || user.Username == "" {
-		return User{}, errInvalidUserDetails
+		return User{}, ErrInvalidUserDetails
 	}
 
 	user, err := service.UserRepo.Update(user)

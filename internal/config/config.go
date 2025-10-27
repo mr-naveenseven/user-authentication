@@ -49,7 +49,7 @@ const (
 
 	// jwt .env config keys
 	KEY_JWT_SECRET     = "JWT_SECRET"
-	JWT_EXPIRY_MINUTES = "JWT_EXPIRE_MINUTES"
+	JWT_EXPIRY_MINUTES = "JWT_EXPIRY_MINUTES"
 )
 
 // NewServerConfig creates a new instance of ServerConfig with default values.
@@ -83,7 +83,7 @@ func (sc *ServerConfig) loadPostgresConfig() {
 
 // loadJWTConfig loads JWT-related configurations from environment variables.
 func (sc *ServerConfig) loadAuthTokenConfig() {
-	sc.AuthTokenConfig.SecretKey = os.Getenv(KEY_JWT_SECRET)
+	sc.AuthTokenConfig.SecretKey = []byte(os.Getenv(KEY_JWT_SECRET))
 	sc.AuthTokenConfig.AccessTokenExpiry, _ = strconv.Atoi(os.Getenv(JWT_EXPIRY_MINUTES))
 }
 

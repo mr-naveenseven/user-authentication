@@ -8,6 +8,7 @@ import (
 
 const (
 	uaTable       = "user_accounts"
+	uaColID       = "id"
 	uaColUserName = "username"
 	uaColEmail    = "email"
 	uaColPwdHash  = "password_hash"
@@ -16,7 +17,7 @@ const (
 )
 
 type repoUser struct {
-	ID                 uint      `gorm:"column:id;primaryKey;autoIncrement"`
+	ID                 int       `gorm:"column:id;primaryKey;autoIncrement"`
 	Username           string    `gorm:"column:username"`
 	Email              string    `gorm:"column:email"`
 	PasswordHash       string    `gorm:"column:password_hash"`
@@ -60,12 +61,11 @@ func toRepoUser(u User) repoUser {
 
 func toEntityUser(u repoUser) User {
 	return User{
-		ID:           u.ID,
-		Username:     u.Username,
-		Email:        u.Email,
-		PasswordHash: u.PasswordHash,
-		IsActive:     u.IsActive,
-		IsLocked:     u.IsLocked,
+		ID:       u.ID,
+		Username: u.Username,
+		Email:    u.Email,
+		IsActive: u.IsActive,
+		IsLocked: u.IsLocked,
 	}
 }
 
@@ -92,7 +92,7 @@ func (repo *UserRepo) Create(user User) (User, error) {
 func (repo *UserRepo) GetByID(userID int) (User, error) {
 
 	var rUser repoUser
-	err := repo.pgClient.DB.Select(uaColUserName, uaColEmail, uaColIsActive, uaColIsLocked).
+	err := repo.pgClient.DB.Select(uaColID, uaColUserName, uaColEmail, uaColIsActive, uaColIsLocked).
 		First(&rUser, userID).Error
 	if err != nil {
 		return User{}, fmt.Errorf("user fetch failed: %v", err)
@@ -116,7 +116,7 @@ func (repo *UserRepo) GetByUsername(username string) (User, error) {
 func (repo *UserRepo) Get() ([]User, error) {
 
 	var users []repoUser
-	res := repo.pgClient.DB.Find(&users)
+	res := repo.pgClient.DB.Select(uaColID, uaColUserName, uaColEmail, uaColIsActive, uaColIsLocked).Find(&users)
 	if res.Error != nil {
 		return []User{}, fmt.Errorf("users fetch failed: %v", res.Error)
 	}
@@ -131,8 +131,6 @@ func (repo *UserRepo) Get() ([]User, error) {
 func (repo *UserRepo) Update(user User) (User, error) {
 
 	rUser := toRepoUser(user)
-
-	fmt.Println(rUser)
 
 	res := repo.pgClient.DB.Model(&repoUser{}).Where(&repoUser{
 		ID: user.ID,

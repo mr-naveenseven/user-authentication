@@ -1,6 +1,8 @@
 package password
 
-import "golang.org/x/crypto/bcrypt"
+import (
+	"golang.org/x/crypto/bcrypt"
+)
 
 const (
 	passwordHashCost = 10
