@@ -22,6 +22,9 @@ jobs:
       - name: Verify Go version
         run: go version
 
+      - name: Download Go modules
+        run: go mod tidy
+
       - name: Verify code formatting
         run: |
           fmt_output=$(go fmt ./...)
