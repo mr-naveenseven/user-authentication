@@ -22,9 +22,6 @@ jobs:
       - name: Verify Go version
         run: go version
 
-      - name: Download Go modules
-        run: go mod tidy
-
       - name: Verify code formatting
         run: |
           fmt_output=$(go fmt ./...)
@@ -42,8 +39,15 @@ jobs:
         with:
           version: v1.60.1
 
+      - name: Install dependencies
+        run: |
+          go mod tidy
+          go mod download
+
       - name: Run golangci-lint
-        run: golangci-lint run ./...
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
 
       - name: Run tests
         run: go test ./... -v -coverprofile=coverage.out
