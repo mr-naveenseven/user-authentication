@@ -1,0 +1,63 @@
+name: PR Quality Check
+
+on:
+  pull_request:
+    branches:
+      - development
+
+jobs:
+  build-and-test:
+    name: Build, Lint & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.3'  # adjust based on the Go version
+
+      - name: Verify Go version
+        run: go version
+
+      - name: Verify code formatting
+        run: |
+          fmt_output=$(go fmt ./...)
+          if [ -n "$fmt_output" ]; then
+            echo "The following files are not properly formatted:"
+            echo "$fmt_output"
+            exit 1
+          fi
+
+      - name: Run static analysis
+        run: go vet ./...
+
+      - name: Install golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.60.1
+
+      - name: Install dependencies
+        run: |
+          go mod tidy
+          go mod download
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+
+      - name: Run tests
+        run: go test ./... -v -coverprofile=coverage.out
+
+      - name: Build binary
+        run: go build -o build/auth_service cmd/auth_service.go
+
+      - name: Upload test coverage report (optional)
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.out
