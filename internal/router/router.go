@@ -30,6 +30,7 @@ func NewRouter(
 
 func (r *Router) InitRouter() {
 	r.e = gin.Default()
+	_ = r.e.SetTrustedProxies(nil)
 	r.initRoutes()
 }
 
